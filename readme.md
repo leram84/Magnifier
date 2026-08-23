@@ -1,6 +1,6 @@
-# Magnifeye
+# Pocket Magnifier
 
-A private, sideloadable Android magnifier designed for reading menus and receipts in dim places. It uses the rear camera full-screen and has no network access, analytics, or store dependencies. Look for the cheerful old man with a magnifying glass on your launcher.
+A private, sideloadable Android magnifier designed for reading menus and receipts in dim places. It uses the rear camera full-screen and has no network access, analytics, or store dependencies.
 
 ## Controls
 
