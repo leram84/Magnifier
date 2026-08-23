@@ -1,6 +1,6 @@
-# Magnifeye
+# Pocket Magnifier
 
-A private, sideloadable Android magnifier designed for reading menus and receipts in dim places. It uses the rear camera full-screen and has no network access, analytics, or store dependencies. Look for the cheerful old man with a magnifying glass on your launcher.
+A private, sideloadable Android magnifier designed for reading menus and receipts in dim places. It uses the rear camera full-screen and has no network access, analytics, or store dependencies.
 
 ## Controls
 
@@ -40,19 +40,11 @@ build manually:
 2. Select **Build Android APK** in the left sidebar.
 3. Select **Run workflow**, then select the green **Run workflow** button.
 4. Wait for the run to finish with a green check mark and open that run.
-5. Under **Artifacts**, select the newest **magnifeye-v1.1-build-N** artifact.
-   The number `N` uniquely identifies that workflow run, so an older APK cannot
-   be mistaken for the new one.
-6. Extract the ZIP and open the similarly named
-   `Magnifeye-v1.1-build-N.apk` on the Android device.
+5. Under **Artifacts**, select **pocket-magnifier-apk** to download a ZIP file.
+6. Extract the ZIP and open `app-debug.apk` on the Android device.
 7. If prompted, allow the browser or Files app to install unknown apps, then
    select **Install**. You can turn that permission off again afterward.
 
 The artifact is retained for 30 days. Android may warn that the debug APK is
 from an unknown source because it was privately built rather than distributed
 through an app store.
-
-The app displays `v1.1` at the top of its camera screen. If it does not, the
-phone is still running an older APK. In that case, uninstall the old app first,
-then install the newly downloaded, versioned APK. Uninstalling also clears any
-launcher cache that might retain the old name or icon.
