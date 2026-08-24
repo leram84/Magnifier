@@ -14,3 +14,12 @@ android {
         versionName = "1.4"
     }
 }
+
+dependencies {
+    // ML Kit Text Recognition (on-device OCR)
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    // ML Kit On-Device Translation
+    implementation("com.google.mlkit:translate:17.0.3")
+    // ML Kit Language Identification (detect source language)
+    implementation("com.google.mlkit:language-id:17.0.6")
+}

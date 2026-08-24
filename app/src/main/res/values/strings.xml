@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Magnifeye</string>
+    <!-- Live Translate feature -->
+    <string name="translate_on">Translate ON</string>
+    <string name="translate_off">Translate OFF</string>
+    <string name="select_language">Select target language</string>
+    <string name="no_text_detected">No text detected</string>
+    <string name="downloading_model">Downloading language model…</string>
+    <string name="model_download_failed">Model download failed. Check your connection.</string>
+    <string name="translation_error">Translation error</string>
 </resources>
