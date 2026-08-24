@@ -1,4 +1,4 @@
-name: Build Android APK (no cache)
+name: Build Android APK
 
 on:
   workflow_dispatch:
@@ -24,30 +24,18 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      # Do not use gradle/actions/setup-gradle here: that action manages a Gradle
-      # cache. Downloading a fresh distribution makes this workflow unambiguously
-      # cache-free and avoids misleading "Caching ... was enabled" messages.
-      - name: Install fresh Gradle 8.14.3 without a cache action
-        run: |
-          curl --fail --location --retry 3 \
-            --output "$RUNNER_TEMP/gradle.zip" \
-            https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
-          unzip -q "$RUNNER_TEMP/gradle.zip" -d "$RUNNER_TEMP/gradle"
-          echo "$RUNNER_TEMP/gradle/gradle-8.14.3/bin" >> "$GITHUB_PATH"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.14.3"
 
-      - name: Remove all previous build output
-        run: rm -rf .gradle build app/build
-
-      - name: Build debug APK without caches
-        run: gradle --no-daemon --no-build-cache --rerun-tasks clean assembleDebug
-
-      - name: Give APK an unmistakable versioned name
-        run: cp app/build/outputs/apk/debug/app-debug.apk Magnifeye-v1.3-build-${{ github.run_number }}.apk
+      - name: Build debug APK
+        run: gradle --no-daemon assembleDebug
 
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: magnifeye-v1.3-build-${{ github.run_number }}
-          path: Magnifeye-v1.3-build-${{ github.run_number }}.apk
+          name: pocket-magnifier-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30

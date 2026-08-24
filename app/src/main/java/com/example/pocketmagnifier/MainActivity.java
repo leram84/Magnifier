@@ -7,7 +7,6 @@ import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
-import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -25,7 +24,6 @@ import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -35,7 +33,6 @@ import java.util.Collections;
 
 public class MainActivity extends Activity implements TextureView.SurfaceTextureListener {
     private static final int CAMERA_PERMISSION = 10;
-    private static final String APP_VERSION = "v1.3";
     private TextureView preview;
     private TextView status;
     private TextView torchButton;
@@ -54,8 +51,6 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
     private float downY;
     private float downZoom;
     private int downTorch;
-    private int gestureAxis;
-    private int touchSlop;
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -63,7 +58,6 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
-        touchSlop = ViewConfiguration.get(this).getScaledTouchSlop();
         buildInterface();
     }
 
@@ -75,7 +69,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         preview.setOnTouchListener(this::onGesture);
         root.addView(preview, new FrameLayout.LayoutParams(-1, -1));
 
-        status = label(APP_VERSION + "  •  1.0×  •  Torch off", 18);
+        status = label("1.0×  •  Torch off", 18);
         FrameLayout.LayoutParams statusLayout = new FrameLayout.LayoutParams(-2, -2,
                 Gravity.TOP | Gravity.CENTER_HORIZONTAL);
         statusLayout.topMargin = dp(44);
@@ -115,25 +109,15 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             downX = event.getX(); downY = event.getY();
             downZoom = zoom; downTorch = torchLevel;
-            gestureAxis = 0;
             return true;
         }
         if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
-            float dx = event.getX() - downX;
-            float dy = event.getY() - downY;
-            if (gestureAxis == 0) {
-                if (Math.max(Math.abs(dx), Math.abs(dy)) < touchSlop) return true;
-                gestureAxis = Math.abs(dy) >= Math.abs(dx) ? 1 : 2;
-            }
             float height = Math.max(1, view.getHeight());
             float width = Math.max(1, view.getWidth());
-            if (gestureAxis == 1) {
-                zoom = clamp(downZoom - dy / height * maximumZoom * 1.5f,
-                        1f, maximumZoom);
-            } else {
-                torchLevel = Math.round(clamp(downTorch + dx / width
-                        * maximumTorch * 1.5f, 0, maximumTorch));
-            }
+            zoom = clamp(downZoom + (downY - event.getY()) / height * maximumZoom * 1.5f,
+                    1f, maximumZoom);
+            torchLevel = Math.round(clamp(downTorch + (event.getX() - downX) / width
+                    * maximumTorch * 1.5f, 0, maximumTorch));
             updateCamera();
             return true;
         }
@@ -229,26 +213,14 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
 
     private void configureTransform(Size buffer) {
         int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = rotation == Surface.ROTATION_90 ? 90 : rotation == Surface.ROTATION_270 ? 270
+                : rotation == Surface.ROTATION_180 ? 180 : 0;
         Matrix matrix = new Matrix();
-        float centerX = preview.getWidth() / 2f;
-        float centerY = preview.getHeight() / 2f;
-        RectF viewRect = new RectF(0, 0, preview.getWidth(), preview.getHeight());
-
-        // Camera buffers from the usual rear sensor are landscape. TextureView already
-        // displays that buffer correctly in the natural portrait rotation, so only the
-        // two landscape display rotations need their dimensions swapped and rotated.
-        if (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) {
-            RectF bufferRect = new RectF(0, 0, buffer.getHeight(), buffer.getWidth());
-            bufferRect.offset(centerX - bufferRect.centerX(), centerY - bufferRect.centerY());
-            matrix.setRectToRect(viewRect, bufferRect, Matrix.ScaleToFit.FILL);
-            float scale = Math.max(
-                    (float) preview.getHeight() / buffer.getHeight(),
-                    (float) preview.getWidth() / buffer.getWidth());
-            matrix.postScale(scale, scale, centerX, centerY);
-            matrix.postRotate(rotation == Surface.ROTATION_90 ? -90 : 90, centerX, centerY);
-        } else if (rotation == Surface.ROTATION_180) {
-            matrix.postRotate(180, centerX, centerY);
-        }
+        float sx = (float) preview.getWidth() / buffer.getHeight();
+        float sy = (float) preview.getHeight() / buffer.getWidth();
+        float scale = Math.max(sx, sy);
+        matrix.setScale(scale, scale, preview.getWidth() / 2f, preview.getHeight() / 2f);
+        matrix.postRotate(degrees - 90, preview.getWidth() / 2f, preview.getHeight() / 2f);
         preview.setTransform(matrix);
     }
 
@@ -272,7 +244,7 @@ public class MainActivity extends Activity implements TextureView.SurfaceTexture
         }
         runOnUiThread(() -> {
             int percent = maximumTorch == 0 ? 0 : Math.round(torchLevel * 100f / maximumTorch);
-            status.setText(String.format("%s  •  %.1f×  •  Torch %s", APP_VERSION, zoom,
+            status.setText(String.format("%.1f×  •  Torch %s", zoom,
                     torchLevel == 0 ? "off" : percent + "%"));
             torchButton.setTextColor(torchLevel == 0 ? Color.WHITE : 0xffffd54f);
         });
