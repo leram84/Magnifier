@@ -1,0 +1,13 @@
+# Local Android and Gradle state
+.gradle/
+local.properties
+**/build/
+
+# Generated Gradle wrapper (the launcher JAR is a binary artifact)
+gradle/wrapper/
+gradlew
+gradlew.bat
+
+# Locally built install packages
+*.apk
+*.aab
